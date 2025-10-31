@@ -60,11 +60,11 @@
   let bestScore = localStorage.getItem('bestReaction') || null;
 
   if (bestScore) {
-    bestDiv.textContent = `📈 최고기록: ${bestScore} ms`;
+    bestDiv.textContent = `최고기록: ${bestScore} ms`;
   }
 
   startBtn.addEventListener('click', () => {
-    msg.textContent = "기다리세요...";
+    msg.textContent = "기다리세요";
     startBtn.style.display = "none";
     document.body.style.backgroundColor = "#111";
 
@@ -77,10 +77,10 @@
   });
 
   document.body.addEventListener('click', () => {
-    if (msg.textContent === "기다리세요...") {
+    if (msg.textContent === "기다리세요") {
       // 조기 클릭 (페널티)
       clearTimeout(timeoutId);
-      msg.textContent = "너무 빨랐어요! 😅";
+      msg.textContent = "시작도 안했는데...😅";
       document.body.style.backgroundColor = "#e74c3c";
       startBtn.style.display = "block";
       scoreDiv.textContent = "";
@@ -89,13 +89,13 @@
       const reaction = Date.now() - startTime;
       msg.textContent = `반응속도: ${reaction} ms`;
       document.body.style.backgroundColor = "#3498db";
-      scoreDiv.textContent = reaction < 200 ? "⚡ 반응신이시군요!" : "";
+      scoreDiv.textContent = reaction < 200 ? "음 이정도면 뭐?" : "";
       startBtn.style.display = "block";
 
       if (!bestScore || reaction < bestScore) {
         bestScore = reaction;
         localStorage.setItem('bestReaction', bestScore);
-        bestDiv.textContent = `📈 최고기록: ${bestScore} ms`;
+        bestDiv.textContent = `최고기록: ${bestScore} ms`;
       }
     }
   });
