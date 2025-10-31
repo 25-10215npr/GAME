@@ -65,14 +65,14 @@
 </style>
 </head>
 <body>
-  <div id="message">👾 2인 반응속도 대결 👾</div>
+  <div id="message">코더즈 자체제작 반응속도 게임</div>
 
   <div id="nameForm">
     <div>
-      Player 1 이름: <input type="text" id="p1Name" placeholder="예: 철수">
+      Player 1 이름: <input type="text" id="p1Name" placeholder="예: 미녀">
     </div>
     <div>
-      Player 2 이름: <input type="text" id="p2Name" placeholder="예: 영희">
+      Player 2 이름: <input type="text" id="p2Name" placeholder="예: 야수">
     </div>
     <button id="saveNames">이름 저장</button>
     <div id="warning"></div>
@@ -135,7 +135,7 @@
 
     const randomDelay = Math.random() * 3000 + 2000; // 2~5초 대기
     timeoutId = setTimeout(() => {
-      msg.innerHTML = "지금 눌러요! 💥";
+      msg.innerHTML = "지금!";
       document.body.style.backgroundColor = "#2ecc71";
       startTime = Date.now();
       ready = true;
@@ -157,9 +157,9 @@
       clearTimeout(timeoutId);
       document.body.style.backgroundColor = "#e74c3c";
       if (key === 'a') {
-        msg.textContent = `${p1Name}이(가) 너무 빨랐어요! ${p2Name} 승! 🏆`;
+        msg.textContent = `어허... ${p1Name} ,시작도 전에 누르다니. ${p2Name} 승! 🏆`;
       } else if (key === 'l') {
-        msg.textContent = `${p2Name}이(가) 너무 빨랐어요! ${p1Name} 승! 🏆`;
+        msg.textContent = `어허... ${p2Name} ,시작도 전에 누르다니. ${p1Name} 승! 🏆`;
       }
       startBtn.style.display = "block";
       winnerDeclared = true;
