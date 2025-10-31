@@ -57,6 +57,11 @@
     align-items: center;
     gap: 10px;
   }
+  #warning {
+    color: #e74c3c;
+    font-size: 1em;
+    margin-top: 5px;
+  }
 </style>
 </head>
 <body>
@@ -70,6 +75,7 @@
       Player 2 이름: <input type="text" id="p2Name" placeholder="예: 영희">
     </div>
     <button id="saveNames">이름 저장</button>
+    <div id="warning"></div>
   </div>
 
   <button id="startBtn" style="display:none;">Start</button>
@@ -85,6 +91,7 @@
   const p1Input = document.getElementById('p1Name');
   const p2Input = document.getElementById('p2Name');
   const saveNamesBtn = document.getElementById('saveNames');
+  const warning = document.getElementById('warning');
 
   let startTime, timeoutId;
   let ready = false;
@@ -99,8 +106,17 @@
   }
 
   saveNamesBtn.addEventListener('click', () => {
-    p1Name = p1Input.value.trim() || "Player 1";
-    p2Name = p2Input.value.trim() || "Player 2";
+    const name1 = p1Input.value.trim();
+    const name2 = p2Input.value.trim();
+
+    if (!name1 || !name2) {
+      warning.textContent = "⚠️ 두 플레이어 이름을 모두 입력하세요!";
+      return;
+    }
+
+    warning.textContent = "";
+    p1Name = name1;
+    p2Name = name2;
 
     nameForm.style.display = "none";
     startBtn.style.display = "block";
@@ -127,12 +143,17 @@
   });
 
   document.addEventListener('keydown', (e) => {
-    if (winnerDeclared) return;
+    // 🔒 이름 입력창에 포커스되어 있으면 게임 입력 무시
+    if (document.activeElement === p1Input || document.activeElement === p2Input) {
+      return;
+    }
 
+    if (winnerDeclared) return;
     const key = e.key.toLowerCase();
 
     if (!ready) {
       // 조기 입력
+      if (key !== 'a' && key !== 'l') return;
       clearTimeout(timeoutId);
       document.body.style.backgroundColor = "#e74c3c";
       if (key === 'a') {
@@ -146,6 +167,8 @@
     }
 
     // 정상 입력
+    if (key !== 'a' && key !== 'l') return;
+
     const reaction = Date.now() - startTime;
     document.body.style.backgroundColor = "#3498db";
     let winner = "";
@@ -161,8 +184,6 @@
       if (!bestScores[p2Name] || reaction < bestScores[p2Name]) {
         bestScores[p2Name] = reaction;
       }
-    } else {
-      return;
     }
 
     localStorage.setItem('reactionBestScores', JSON.stringify(bestScores));
