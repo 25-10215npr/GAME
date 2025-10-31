@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Reaction Clash 2P - Name Edition</title>
+<title>Reaction Clash 2P - Ranking Edition</title>
 <style>
   body {
     font-family: 'Arial', sans-serif;
@@ -20,7 +20,7 @@
   }
   #message {
     font-size: 2em;
-    margin-bottom: 30px;
+    margin-bottom: 20px;
   }
   button {
     background: #444;
@@ -44,10 +44,10 @@
   }
   #result {
     font-size: 1.5em;
-    margin-top: 20px;
+    margin-top: 15px;
   }
   #best {
-    margin-top: 10px;
+    margin-top: 15px;
     font-size: 1.1em;
     color: #aaa;
   }
@@ -62,6 +62,15 @@
     font-size: 1em;
     margin-top: 5px;
   }
+  #ranking {
+    margin-top: 30px;
+    color: #ffcc00;
+    font-size: 1.1em;
+  }
+  #ranking h3 {
+    margin-bottom: 5px;
+    color: #fff;
+  }
 </style>
 </head>
 <body>
@@ -69,10 +78,10 @@
 
   <div id="nameForm">
     <div>
-      Player 1 이름: <input type="text" id="p1Name" placeholder="예: 미녀">
+      Player 1 이름: <input type="text" id="p1Name" placeholder="예: 철수">
     </div>
     <div>
-      Player 2 이름: <input type="text" id="p2Name" placeholder="예: 야수">
+      Player 2 이름: <input type="text" id="p2Name" placeholder="예: 영희">
     </div>
     <button id="saveNames">이름 저장</button>
     <div id="warning"></div>
@@ -81,6 +90,11 @@
   <button id="startBtn" style="display:none;">Start</button>
   <div id="result"></div>
   <div id="best"></div>
+
+  <div id="ranking">
+    <h3>🏁 TOP 3 반응속도 랭킹</h3>
+    <ol id="rankingList"></ol>
+  </div>
 
 <script>
   const msg = document.getElementById('message');
@@ -92,13 +106,35 @@
   const p2Input = document.getElementById('p2Name');
   const saveNamesBtn = document.getElementById('saveNames');
   const warning = document.getElementById('warning');
+  const rankingList = document.getElementById('rankingList');
 
   let startTime, timeoutId;
   let ready = false;
   let winnerDeclared = false;
   let p1Name = "", p2Name = "";
   let bestScores = JSON.parse(localStorage.getItem('reactionBestScores') || "{}");
+  let rankings = JSON.parse(localStorage.getItem('reactionRankings') || "[]");
 
+  // --- 랭킹 업데이트 함수 ---
+  function updateRanking() {
+    rankingList.innerHTML = "";
+    const top3 = rankings
+      .sort((a, b) => a.score - b.score)
+      .slice(0, 3);
+    if (top3.length === 0) {
+      rankingList.innerHTML = "<li>기록 없음</li>";
+    } else {
+      top3.forEach((r, i) => {
+        const li = document.createElement("li");
+        li.textContent = `${i + 1}. ${r.name} - ${r.score} ms`;
+        rankingList.appendChild(li);
+      });
+    }
+  }
+
+  updateRanking();
+
+  // --- 개별 최고 기록 표시 ---
   function updateBest() {
     const p1Best = bestScores[p1Name] ? bestScores[p1Name] + " ms" : "기록 없음";
     const p2Best = bestScores[p2Name] ? bestScores[p2Name] + " ms" : "기록 없음";
@@ -133,9 +169,9 @@
     ready = false;
     winnerDeclared = false;
 
-    const randomDelay = Math.random() * 3000 + 2000; // 2~5초 대기
+    const randomDelay = Math.random() * 3000 + 2000;
     timeoutId = setTimeout(() => {
-      msg.innerHTML = "지금!";
+      msg.innerHTML = "지금! 💥";
       document.body.style.backgroundColor = "#2ecc71";
       startTime = Date.now();
       ready = true;
@@ -143,30 +179,27 @@
   });
 
   document.addEventListener('keydown', (e) => {
-    // 🔒 이름 입력창에 포커스되어 있으면 게임 입력 무시
-    if (document.activeElement === p1Input || document.activeElement === p2Input) {
-      return;
-    }
+    // 입력창 포커스 중에는 무시
+    if (document.activeElement === p1Input || document.activeElement === p2Input) return;
 
     if (winnerDeclared) return;
     const key = e.key.toLowerCase();
 
     if (!ready) {
-      // 조기 입력
       if (key !== 'a' && key !== 'l') return;
       clearTimeout(timeoutId);
       document.body.style.backgroundColor = "#e74c3c";
       if (key === 'a') {
-        msg.textContent = `어허... ${p1Name} ,시작도 전에 누르다니. ${p2Name} 승! 🏆`;
+        msg.textContent = `시작도 안했는데 ${p1Name} 얘가 누름; ${p2Name} 승! 🏆`;
       } else if (key === 'l') {
-        msg.textContent = `어허... ${p2Name} ,시작도 전에 누르다니. ${p1Name} 승! 🏆`;
+        msg.textContent = `시작도 안했는데 ${p2Name} 얘가 누름; ${p1Name} 승! 🏆`;
       }
       startBtn.style.display = "block";
       winnerDeclared = true;
+      setTimeout(resetToNameInput, 1500);
       return;
     }
 
-    // 정상 입력
     if (key !== 'a' && key !== 'l') return;
 
     const reaction = Date.now() - startTime;
@@ -174,24 +207,47 @@
     let winner = "";
     if (key === 'a') {
       winner = p1Name;
-      msg.textContent = `🎯 ${winner} 승! 반응속도: ${reaction} ms`;
-      if (!bestScores[p1Name] || reaction < bestScores[p1Name]) {
-        bestScores[p1Name] = reaction;
-      }
     } else if (key === 'l') {
       winner = p2Name;
-      msg.textContent = `🎯 ${winner} 승! 반응속도: ${reaction} ms`;
-      if (!bestScores[p2Name] || reaction < bestScores[p2Name]) {
-        bestScores[p2Name] = reaction;
-      }
     }
 
+    msg.textContent = `🎯 ${winner} 승! 반응속도: ${reaction} ms`;
+
+    // 개인 기록 갱신
+    if (!bestScores[winner] || reaction < bestScores[winner]) {
+      bestScores[winner] = reaction;
+    }
+
+    // 랭킹 추가
+    rankings.push({ name: winner, score: reaction });
+    rankings.sort((a, b) => a.score - b.score);
+    if (rankings.length > 10) rankings = rankings.slice(0, 10); // 랭킹 상위 10까지만 유지
+
+    // 저장
     localStorage.setItem('reactionBestScores', JSON.stringify(bestScores));
+    localStorage.setItem('reactionRankings', JSON.stringify(rankings));
+
     updateBest();
+    updateRanking();
+
     winnerDeclared = true;
     ready = false;
     startBtn.style.display = "block";
+    setTimeout(resetToNameInput, 2000); // 2초 후 이름 다시 입력
   });
+
+  // --- 다음 라운드 준비 ---
+  function resetToNameInput() {
+    document.body.style.backgroundColor = "#111";
+    msg.textContent = " 새 라운드! 이름을 다시 입력하세요.";
+    nameForm.style.display = "flex";
+    startBtn.style.display = "none";
+    resultDiv.textContent = "";
+    bestDiv.textContent = "";
+    p1Input.value = "";
+    p2Input.value = "";
+    p1Input.focus();
+  }
 </script>
 </body>
 </html>
